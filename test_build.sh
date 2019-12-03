@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+ROOTDIR=`pwd`
+
+DISTFOLDER=$ROOTDIR/dist
+BUILDFOLDER=$ROOTDIR/build
+mkdir -p $BUILDFOLDER
+cd $BUILDFOLDER
+
+cmake -DCMAKE_INSTALL_PREFIX=$DISTFOLDER $ROOTDIR || exit 1
