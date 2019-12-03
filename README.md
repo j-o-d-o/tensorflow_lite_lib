@@ -10,4 +10,12 @@ ExternalProject_Add(TensorflowLitePrj
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}/tensorflow_lite
   INSTALL_COMMAND make install
 )
+
+SET(TENSORFLOW_LITE_LIB_X86_DIR ${INSTALL_DIR}/tensorflow_lite/lib/linux_x86_64/lib)
+SET(TENSORFLOW_LITE_LIB_ARM_DIR ${INSTALL_DIR}/tensorflow_lite/lib/aarch64_armv8-a/lib)
+
+SET(TENSORFLOW_LITE_INCLUDE_DIR ${INSTALL_DIR}/tensorflow_lite/include)
+SET(TENSORFLOW_LITE_DEPENDENCIES_INCLUDE_DIR 
+  ${INSTALL_DIR}/tensorflow_lite/include/tensorflow/lite/tools/make/downloads/flatbuffers/include
+)
 ```
