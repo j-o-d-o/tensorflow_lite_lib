@@ -42,13 +42,13 @@ done
 ############
 ## SCRIPT ##
 ############
-rm -rf headers
+rm -rf include
 rm -rf lib
-mkdir -p headers/tensorflow/lite
+mkdir -p include/tensorflow/lite
 mkdir lib
 
 cd ${SOURCE_PATH}
-find . -name "*.h" | xargs cp --parents -t ${ROOTDIR}/headers/tensorflow/lite
+find . -name "*.h" | xargs cp --parents -t ${ROOTDIR}/include/tensorflow/lite
 
 cd tools/make/gen
 find . -name "*.a" | xargs cp --parents -t ${ROOTDIR}/lib
