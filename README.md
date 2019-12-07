@@ -3,7 +3,7 @@
 Built with: https://github.com/tensorflow/tensorflow/tree/094da7eaa9d802ee676170f2df58ded528da52d9 </br>
 To build new version use this how to: https://www.tensorflow.org/lite/guide/build_arm64 and run `>> bash copy_files.sh --path==/PATH/TO/TENSORFLOW/LITE`
 
-Note: For GPU support you will have to adapt the `build_lib.sh` by setting: `BUILD_WITH_NNAPI=true`
+Note: GPU support for x86 does not work: follow this ticket (https://github.com/tensorflow/tensorflow/issues/34922)
 
 ## How to include in CMake
 ```CMake
