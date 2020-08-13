@@ -464,9 +464,9 @@ struct ScanLauncher_impl {
 
 }  // namespace internal
 }  // namespace TensorSycl
-namespace internal {
-template <typename Self, typename Reducer, bool vectorize>
-struct ScanLauncher<Self, Reducer, Eigen::SyclDevice, vectorize> {
+
+template <typename Self, typename Reducer>
+struct ScanLauncher<Self, Reducer, Eigen::SyclDevice> {
   typedef typename Self::Index Index;
   typedef typename Self::CoeffReturnType CoeffReturnType;
   typedef typename Self::Storage Storage;
@@ -507,7 +507,6 @@ struct ScanLauncher<Self, Reducer, Eigen::SyclDevice, vectorize> {
         inclusive, dev);
   }
 };
-} // namespace internal
 }  // namespace Eigen
 
 #endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSOR_SYCL_SYCL_HPP

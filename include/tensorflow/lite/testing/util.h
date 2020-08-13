@@ -51,7 +51,7 @@ class TestErrorReporter : public ErrorReporter {
 
 inline void LogToStderr() {
 #ifdef PLATFORM_GOOGLE
-  absl::SetFlag(&FLAGS_logtostderr, true);
+  FLAGS_logtostderr = true;
 #endif
 }
 

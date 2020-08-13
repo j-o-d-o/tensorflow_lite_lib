@@ -19,7 +19,6 @@
 #include <iosfwd>
 #include <string>
 
-#include "absl/base/config.h"
 #include "absl/flags/declare.h"
 #include "absl/flags/internal/commandlineflag.h"
 #include "absl/strings/string_view.h"
@@ -28,8 +27,21 @@
 // Usage reporting interfaces
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 namespace flags_internal {
+
+// Sets the "usage" message to be used by help reporting routines.
+// For example:
+//  absl::SetProgramUsageMessage(
+//      absl::StrCat("This program does nothing.  Sample usage:\n", argv[0],
+//                   " <uselessarg1> <uselessarg2>"));
+// Do not include commandline flags in the usage: we do that for you!
+// Note: Calling SetProgramUsageMessage twice will trigger a call to std::exit.
+void SetProgramUsageMessage(absl::string_view new_usage_message);
+
+// Returns the usage message set by SetProgramUsageMessage().
+absl::string_view ProgramUsageMessage();
+
+// --------------------------------------------------------------------
 
 // The format to report the help messages in.
 enum class HelpFormat {
@@ -49,8 +61,8 @@ void FlagHelp(std::ostream& out, const flags_internal::CommandLineFlag& flag,
 //  .../path/to/file.<ext>
 // for any extension 'ext'. If the filter is empty this function produces help
 // messages for all flags.
-void FlagsHelp(std::ostream& out, absl::string_view filter,
-               HelpFormat format, absl::string_view program_usage_message);
+void FlagsHelp(std::ostream& out, absl::string_view filter = {},
+               HelpFormat format = HelpFormat::kHumanReadable);
 
 // --------------------------------------------------------------------
 
@@ -62,11 +74,9 @@ void FlagsHelp(std::ostream& out, absl::string_view filter,
 // -1 - if no usage flags were set on a commmand line.
 // Non negative return values are expected to be used as an exit code for a
 // binary.
-int HandleUsageFlags(std::ostream& out,
-                     absl::string_view program_usage_message);
+int HandleUsageFlags(std::ostream& out);
 
 }  // namespace flags_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 ABSL_DECLARE_FLAG(bool, help);

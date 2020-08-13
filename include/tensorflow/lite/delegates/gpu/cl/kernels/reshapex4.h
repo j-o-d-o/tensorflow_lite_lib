@@ -28,9 +28,12 @@ namespace cl {
 
 class Reshapex4 : public GPUOperation {
  public:
-  explicit Reshapex4(const OperationDef& definition);
+  explicit Reshapex4(const OperationDef& definition)
+      : GPUOperation(definition), work_group_size_(8, 4, 1) {}
+  Status AddToQueue(CLCommandQueue* queue) override;
+  Status Tune(const TuningParameters& params) override;
 
-  int3 GetGridSize() const override;
+  Status Compile(const CreationContext& creation_context) override;
 
   // Move only
   Reshapex4(Reshapex4&& operation);
@@ -39,7 +42,11 @@ class Reshapex4 : public GPUOperation {
   Reshapex4& operator=(const Reshapex4&) = delete;
 
  private:
-  std::string GetReshapeCode(const OperationDef& op_def);
+  Status BindArguments();
+  int3 GetGridSize() const;
+
+  CLKernel kernel_;
+  int3 work_group_size_;
 };
 
 // More optimized, but require src_channels % 4 == 0 and dst_channels % 4 == 0

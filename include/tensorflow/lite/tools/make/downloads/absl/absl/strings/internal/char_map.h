@@ -28,7 +28,6 @@
 #include "absl/base/port.h"
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 namespace strings_internal {
 
 class Charmap {
@@ -150,7 +149,6 @@ constexpr Charmap GraphCharmap() { return PrintCharmap() & ~SpaceCharmap(); }
 constexpr Charmap PunctCharmap() { return GraphCharmap() & ~AlnumCharmap(); }
 
 }  // namespace strings_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_STRINGS_INTERNAL_CHAR_MAP_H_

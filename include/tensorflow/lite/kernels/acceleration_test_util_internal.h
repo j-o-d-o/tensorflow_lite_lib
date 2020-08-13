@@ -18,12 +18,14 @@ limitations under the License.
 #include <algorithm>
 #include <atomic>
 #include <functional>
-#include <iterator>
+#include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/types/optional.h"
 #include "re2/re2.h"
+#include "tensorflow/lite/minimal_logging.h"
 
 namespace tflite {
 
@@ -39,15 +41,15 @@ template <typename T>
 class ConfigurationEntry {
  public:
   ConfigurationEntry(const std::string& test_id_rex, T test_config,
-                     bool is_denylist)
+                     bool is_blacklist)
       : test_id_rex_(test_id_rex),
         test_config_(test_config),
-        is_denylist_(is_denylist) {}
+        is_blacklist_(is_blacklist) {}
 
   bool Matches(const std::string& test_id) {
     return RE2::FullMatch(test_id, test_id_rex_);
   }
-  bool IsDenylistEntry() const { return is_denylist_; }
+  bool IsBlacklistEntry() const { return is_blacklist_; }
   const T& TestConfig() const { return test_config_; }
 
   const std::string& TestIdRex() const { return test_id_rex_; }
@@ -55,7 +57,7 @@ class ConfigurationEntry {
  private:
   std::string test_id_rex_;
   T test_config_;
-  bool is_denylist_;
+  bool is_blacklist_;
 };
 
 // Returns the acceleration test configuration for the given test id and
@@ -71,9 +73,9 @@ absl::optional<T> GetAccelerationTestParam(std::string test_id) {
     auto config = new std::vector<ConfigurationEntry<T>>();
 
     auto consumer = [&config](std::string key, std::string value_str,
-                              bool is_denylist) mutable {
+                              bool is_blacklist) mutable {
       T value = T::ParseConfigurationLine(value_str);
-      config->push_back(ConfigurationEntry<T>(key, value, is_denylist));
+      config->push_back(ConfigurationEntry<T>(key, value, is_blacklist));
     };
 
     ReadAccelerationConfig(T::kAccelerationTestConfig, consumer);
@@ -91,7 +93,7 @@ absl::optional<T> GetAccelerationTestParam(std::string test_id) {
       test_config->begin(), test_config->end(),
       [&test_id](ConfigurationEntry<T> elem) { return elem.Matches(test_id); });
   if (test_config_iter != test_config->end() &&
-      !test_config_iter->IsDenylistEntry()) {
+      !test_config_iter->IsBlacklistEntry()) {
     return absl::optional<T>(test_config_iter->TestConfig());
   } else {
     return absl::optional<T>();

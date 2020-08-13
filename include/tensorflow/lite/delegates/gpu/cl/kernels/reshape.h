@@ -27,9 +27,12 @@ namespace cl {
 
 class Reshape : public GPUOperation {
  public:
-  explicit Reshape(const OperationDef& definition);
+  explicit Reshape(const OperationDef& definition)
+      : GPUOperation(definition), work_group_size_(8, 4, 1) {}
+  Status AddToQueue(CLCommandQueue* queue) override;
+  Status Tune(const TuningParameters& params) override;
 
-  int3 GetGridSize() const override;
+  Status Compile(const CreationContext& creation_context) override;
 
   // Move only
   Reshape(Reshape&& operation);
@@ -38,7 +41,11 @@ class Reshape : public GPUOperation {
   Reshape& operator=(const Reshape&) = delete;
 
  private:
-  std::string GetReshapeCode(const OperationDef& op_def);
+  Status BindArguments();
+  int3 GetGridSize() const;
+
+  CLKernel kernel_;
+  int3 work_group_size_;
 };
 
 Reshape CreateReshape(const OperationDef& definition);

@@ -40,7 +40,6 @@ enum RunType {
 
 class BenchmarkResults {
  public:
-  BenchmarkResults() {}
   BenchmarkResults(double model_size_mb, int64_t startup_latency_us,
                    uint64_t input_bytes,
                    tensorflow::Stat<int64_t> warmup_time_us,
@@ -76,9 +75,9 @@ class BenchmarkResults {
   }
 
  private:
-  double model_size_mb_ = 0.0;
-  int64_t startup_latency_us_ = 0;
-  uint64_t input_bytes_ = 0;
+  double model_size_mb_;
+  int64_t startup_latency_us_;
+  uint64_t input_bytes_;
   tensorflow::Stat<int64_t> warmup_time_us_;
   tensorflow::Stat<int64_t> inference_time_us_;
   profiling::memory::MemoryUsage init_mem_usage_;
@@ -143,7 +142,7 @@ class BenchmarkListeners : public BenchmarkListener {
     }
   }
 
-  ~BenchmarkListeners() override {}
+  ~BenchmarkListeners() {}
 
  private:
   // Use vector so listeners are invoked in the order they are added.
@@ -152,7 +151,6 @@ class BenchmarkListeners : public BenchmarkListener {
 
 // Benchmark listener that just logs the results of benchmark run.
 class BenchmarkLoggingListener : public BenchmarkListener {
- public:
   void OnBenchmarkEnd(const BenchmarkResults& results) override;
 };
 
@@ -161,7 +159,7 @@ Flag CreateFlag(const char* name, BenchmarkParams* params,
                 const std::string& usage) {
   return Flag(
       name, [params, name](const T& val) { params->Set<T>(name, val); },
-      params->Get<T>(name), usage, Flag::kOptional);
+      params->Get<T>(name), usage, Flag::OPTIONAL);
 }
 
 // Benchmarks a model.
@@ -172,8 +170,7 @@ class BenchmarkModel {
  public:
   static BenchmarkParams DefaultParams();
   BenchmarkModel();
-  explicit BenchmarkModel(BenchmarkParams params)
-      : params_(std::move(params)) {}
+  BenchmarkModel(BenchmarkParams params) : params_(std::move(params)) {}
   virtual ~BenchmarkModel() {}
   virtual TfLiteStatus Init() = 0;
   TfLiteStatus Run(int argc, char** argv);

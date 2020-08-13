@@ -46,7 +46,6 @@
 #include "absl/strings/string_view.h"
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 
 // StrReplaceAll()
 //
@@ -213,7 +212,6 @@ int StrReplaceAll(const StrToStrMapping& replacements, std::string* target) {
   return substitutions;
 }
 
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_STRINGS_STR_REPLACE_H_

@@ -359,15 +359,6 @@ template<> struct numeric_limits<unsigned long long>
   EIGEN_DEVICE_FUNC
   static unsigned long long (min)() { return 0; }
 };
-template<> struct numeric_limits<bool>
-{
-  EIGEN_DEVICE_FUNC
-  static bool epsilon() { return false; }
-  EIGEN_DEVICE_FUNC
-  static bool (max)() { return true; }
-  EIGEN_DEVICE_FUNC
-  static bool (min)() { return false; }
-};
 
 }
 
@@ -681,11 +672,10 @@ bool not_equal_strict(const double& x,const double& y) { return std::not_equal_t
 #endif
 
 /** \internal extract the bits of the float \a x */
-EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC unsigned int as_uint(float x)
+inline unsigned int as_uint(float x)
 {
   unsigned int ret;
-  EIGEN_USING_STD(memcpy);
-  memcpy(&ret, &x, sizeof(float));
+  std::memcpy(&ret, &x, sizeof(float));
   return ret;
 }
 

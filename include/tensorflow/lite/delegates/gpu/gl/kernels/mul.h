@@ -25,7 +25,9 @@ namespace tflite {
 namespace gpu {
 namespace gl {
 
-std::unique_ptr<NodeShader> NewMultiplyNodeShader();
+std::unique_ptr<NodeShader> NewApplyMaskNodeShader();
+
+std::unique_ptr<NodeShader> NewMultiplyScalarNodeShader();
 
 }  // namespace gl
 }  // namespace gpu

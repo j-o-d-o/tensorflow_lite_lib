@@ -63,10 +63,10 @@ typedef NS_ENUM(NSUInteger, TFLInterpreterErrorCode) {
   /** Failed to allocate memory for tensors. */
   TFLInterpreterErrorCodeFailedToAllocateTensors,
 
-  /** Operation not allowed without allocating memory for tensors first. */
+  /** Operaton not allowed without allocating memory for tensors first. */
   TFLInterpreterErrorCodeAllocateTensorsRequired,
 
-  /** Operation not allowed without invoking the interpreter first. */
+  /** Operaton not allowed without invoking the interpreter first. */
   TFLInterpreterErrorCodeInvokeInterpreterRequired,
 };
 

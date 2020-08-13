@@ -15,12 +15,12 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_ACCELERATION_TEST_UTIL_H_
 #define TENSORFLOW_LITE_KERNELS_ACCELERATION_TEST_UTIL_H_
 
-#include <string>
+#include <gtest/gtest.h>
 
 namespace tflite {
 
 // Returns the test id to use to retrieve the acceleration configuration
-// in the acceleration allowlist.
+// in the acceleration whitelist.
 std::string GetCurrentTestId();
 
 }  // namespace tflite

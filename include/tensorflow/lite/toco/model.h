@@ -180,7 +180,6 @@ enum class OperatorType : uint8 {
   kMatrixSetDiagV2,
   kMatrixDiagV3,
   kMatrixSetDiagV3,
-  kScatterNd,
   // Debugging operators.
   kNumericVerify
 };
@@ -235,8 +234,6 @@ enum class ArrayDataType : uint8 {
   kString,
   kComplex64,
   kFloat16,
-  kFloat64,
-  kComplex128,
 };
 
 // Compile-time logic to map ArrayDataType to the corresponding C++ scalar type
@@ -288,7 +285,7 @@ struct DataTypeImpl<ArrayDataType::kUint64> {
 };
 template <>
 struct DataTypeImpl<ArrayDataType::kString> {
-  typedef std::string Type;
+  typedef string Type;
 };
 template <>
 struct DataTypeImpl<ArrayDataType::kComplex64> {
@@ -399,10 +396,10 @@ struct Operator {
   // names to addresses is given by the Model, which owns both Operator's and
   // Array's. Thus, an Operator on its own doesn't contain much information,
   // it is meant to be used in conjunction with the Model that owns it.
-  std::vector<std::string> inputs;
+  std::vector<string> inputs;
 
   // Output activation arrays. Same comments as for inputs apply here too.
-  std::vector<std::string> outputs;
+  std::vector<string> outputs;
 
   // If true, the operator has more outputs than are listed in the 'outputs'
   // member. These need to be resolved by some graph transformation.
@@ -416,7 +413,7 @@ struct Operator {
   // It's guaranteed to be filled for `TensorFlowUnsupportedOperator`.
   // It's not guaranteed to be filled for other ops. Ops created by graph
   // transformations won't have TensorFlow NodeDef.
-  std::string tensorflow_node_def;
+  string tensorflow_node_def;
 
  protected:
   // Constructor used by subclasses for specific OperatorType's.
@@ -493,7 +490,7 @@ struct ConvOperator : Operator {
 //   inputs[4]: optional: merge repeated.
 //
 //  Outputs:
-//    outputs[0]: decoded.
+//    outputs[0]: deocoded.
 //    outputs[1]: log probability.
 //
 // TensorFlow equivalent: CTCBeamSearchDecoder
@@ -1202,8 +1199,6 @@ struct SqueezeOperator : Operator {
 //   inputs[0]: required: the output shape
 //   inputs[1]: required: the weights
 //   inputs[2]: required: the input activations array
-//   inputs[3]: optional: the bias vector, specifying the biases for each output
-//                        channel.
 //   NOTE: The input activations is NOT the first input.
 //
 //
@@ -1216,7 +1211,6 @@ struct TransposeConvOperator : Operator {
     OUTPUT_SHAPE = 0,
     WEIGHTS = 1,
     DATA_INPUT = 2,
-    BIAS = 3,
   };
 
   TransposeConvOperator() : Operator(OperatorType::kTransposeConv) {}
@@ -1264,7 +1258,7 @@ struct ExpandDimsOperator : Operator {
   ExpandDimsOperator() : Operator(OperatorType::kExpandDims) {}
 };
 
-// Creates a tensor of shape dims and fills it with the given scalar value.
+// Ceates a tensor of shape dims and fills it with the given scalar value.
 // Output type will be the same as the given scalar value.
 //
 // Inputs:
@@ -1694,7 +1688,7 @@ struct TensorFlowUnsupportedOperator : Operator {
   TensorFlowUnsupportedOperator() : Operator(OperatorType::kUnsupported) {}
 
   // The original TF operation type. Used for diagnostic purposes.
-  std::string tensorflow_op;
+  string tensorflow_op;
   // A boolean indicating if the unsupported op should be treated as quantized.
   bool quantized = false;
   // A boolean indicating if the unsupported op output should allow float values
@@ -1862,7 +1856,6 @@ struct ResizeNearestNeighborOperator : Operator {
       : Operator(OperatorType::kResizeNearestNeighbor) {}
 
   bool align_corners = false;
-  bool half_pixel_centers = false;
 };
 
 // SpaceToBatchND operator. It divides spatial dimensions into a grid of
@@ -2199,10 +2192,6 @@ struct MatrixSetDiagV3Operator : Operator {
   MatrixSetDiagV3Operator() : Operator(OperatorType::kMatrixSetDiagV3) {}
 };
 
-struct ScatterNdOperator : Operator {
-  ScatterNdOperator() : Operator(OperatorType::kScatterNd) {}
-};
-
 struct SegmentSumOperator : Operator {
   SegmentSumOperator() : Operator(OperatorType::kSegmentSum) {}
 };
@@ -2394,16 +2383,14 @@ struct Array {
 // Owns everything.
 class Model {
  public:
-  using ArrayMap = std::unordered_map<std::string, std::unique_ptr<Array>>;
+  using ArrayMap = std::unordered_map<string, std::unique_ptr<Array>>;
 
-  bool HasArray(const std::string& name) const {
-    return arrays.count(name) > 0;
-  }
-  Array& GetArray(const std::string& name) const {
+  bool HasArray(const string& name) const { return arrays.count(name) > 0; }
+  Array& GetArray(const string& name) const {
     DCHECK(HasArray(name)) << "Array not found: " << name;
     return *arrays.at(name);
   }
-  Array& GetOrCreateArray(const std::string& name) {
+  Array& GetOrCreateArray(const string& name) {
     // Make sure name is not used by an optional array
     DCHECK(!optional_arrays.count(name));
     if (!HasArray(name)) {
@@ -2413,17 +2400,17 @@ class Model {
     Array& result = GetArray(name);
     return result;
   }
-  void CreateOptionalArray(const std::string& name) {
+  void CreateOptionalArray(const string& name) {
     DCHECK(!arrays.count(name) && !optional_arrays.count(name));
     optional_arrays.insert(name);
   }
-  bool IsOptionalArray(const std::string& name) const {
+  bool IsOptionalArray(const string& name) const {
     return optional_arrays.count(name);
   }
 
   // Note that this invalidates all array iterators.
-  void EraseArray(const std::string& name) { arrays.erase(name); }
-  void EraseArrays(std::function<bool(const std::string&)> discardable) {
+  void EraseArray(const string& name) { arrays.erase(name); }
+  void EraseArrays(std::function<bool(const string&)> discardable) {
     for (auto it = arrays.begin(); it != arrays.end();) {
       if (discardable(it->first)) {
         it = arrays.erase(it);
@@ -2437,17 +2424,17 @@ class Model {
 
   int64 ArithmeticOpsCount() const { return ops_count; }
 
-  void AddInvalidInputArray(std::string invalid_input_array) {
+  void AddInvalidInputArray(string invalid_input_array) {
     invalid_input_arrays_.insert(invalid_input_array);
   }
 
-  const std::unordered_set<std::string>& GetInvalidInputArrays() const {
+  const std::unordered_set<string>& GetInvalidInputArrays() const {
     return invalid_input_arrays_;
   }
 
   // Optional arrays are used for optional tensors,
   // these tensors do not have data, but with reserved names as op inputs.
-  std::set<std::string> optional_arrays;
+  std::set<string> optional_arrays;
 
   // The list of operators. Notice how it's a list of unique_ptr's, implying
   // that the Model is what owns Operator's and keeps them alive.
@@ -2470,10 +2457,10 @@ class Model {
   // that the Model is what owns Array's and keeps them alive.
   // The Operator's refer to these Array's by their name strings, not by their
   // addresses. See Operator::inputs, Operator::outputs.
-  std::unordered_map<std::string, std::unique_ptr<Array>> arrays;
+  std::unordered_map<string, std::unique_ptr<Array>> arrays;
 
   // Invalid input arrays.
-  std::unordered_set<std::string> invalid_input_arrays_;
+  std::unordered_set<string> invalid_input_arrays_;
 };
 
 // OperatorSignature contains the information required to making versioning

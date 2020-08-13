@@ -25,7 +25,6 @@
 #include "absl/meta/type_traits.h"  //  for void_t
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 namespace strings_internal {
 
 // Is a subclass of true_type or false_type, depending on whether or not
@@ -36,7 +35,8 @@ struct ResizeUninitializedTraits {
   static void Resize(string_type* s, size_t new_size) { s->resize(new_size); }
 };
 
-// __resize_default_init is provided by libc++ >= 8.0
+// __resize_default_init is provided by libc++ >= 8.0 and by Google's internal
+// ::string implementation.
 template <typename string_type>
 struct ResizeUninitializedTraits<
     string_type, absl::void_t<decltype(std::declval<string_type&>()
@@ -67,7 +67,6 @@ inline void STLStringResizeUninitialized(string_type* s, size_t new_size) {
 }
 
 }  // namespace strings_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_STRINGS_INTERNAL_RESIZE_UNINITIALIZED_H_

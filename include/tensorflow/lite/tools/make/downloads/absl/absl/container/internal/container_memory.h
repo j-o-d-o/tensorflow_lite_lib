@@ -34,7 +34,6 @@
 #include "absl/utility/utility.h"
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 namespace container_internal {
 
 // Allocates at least n bytes aligned to the specified alignment.
@@ -434,7 +433,6 @@ struct map_slot_policy {
 };
 
 }  // namespace container_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_CONTAINER_INTERNAL_CONTAINER_MEMORY_H_

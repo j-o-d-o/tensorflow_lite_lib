@@ -782,9 +782,6 @@ class SparseMatrix
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const EigenBase<OtherDerived>& other)
     { return Base::operator=(other.derived()); }
-
-    template<typename Lhs, typename Rhs>
-    inline SparseMatrix& operator=(const Product<Lhs,Rhs,AliasFreeProduct>& other);
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
     template<typename OtherDerived>

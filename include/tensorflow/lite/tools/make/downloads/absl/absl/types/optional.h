@@ -38,21 +38,19 @@
 #include "absl/base/config.h"   // TODO(calabrese) IWYU removal?
 #include "absl/utility/utility.h"
 
-#ifdef ABSL_USES_STD_OPTIONAL
+#ifdef ABSL_HAVE_STD_OPTIONAL
 
 #include <optional>  // IWYU pragma: export
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 using std::bad_optional_access;
 using std::optional;
 using std::make_optional;
 using std::nullopt_t;
 using std::nullopt;
-ABSL_NAMESPACE_END
 }  // namespace absl
 
-#else  // ABSL_USES_STD_OPTIONAL
+#else  // ABSL_HAVE_STD_OPTIONAL
 
 #include <cassert>
 #include <functional>
@@ -67,7 +65,6 @@ ABSL_NAMESPACE_END
 #include "absl/types/internal/optional.h"
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 
 // nullopt_t
 //
@@ -502,7 +499,7 @@ class optional : private optional_internal::optional_data<T>,
   template <typename U>
   constexpr T value_or(U&& v) const& {
     static_assert(std::is_copy_constructible<value_type>::value,
-                  "optional<T>::value_or: T must be copy constructible");
+                  "optional<T>::value_or: T must by copy constructible");
     static_assert(std::is_convertible<U&&, value_type>::value,
                   "optional<T>::value_or: U must be convertible to T");
     return static_cast<bool>(*this)
@@ -512,7 +509,7 @@ class optional : private optional_internal::optional_data<T>,
   template <typename U>
   T value_or(U&& v) && {  // NOLINT(build/c++11)
     static_assert(std::is_move_constructible<value_type>::value,
-                  "optional<T>::value_or: T must be move constructible");
+                  "optional<T>::value_or: T must by move constructible");
     static_assert(std::is_convertible<U&&, value_type>::value,
                   "optional<T>::value_or: U must be convertible to T");
     return static_cast<bool>(*this) ? std::move(**this)
@@ -757,7 +754,6 @@ constexpr auto operator>=(const U& v, const optional<T>& x)
   return static_cast<bool>(x) ? static_cast<bool>(v >= *x) : true;
 }
 
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 namespace std {
@@ -771,6 +767,6 @@ struct hash<absl::optional<T> >
 
 #undef ABSL_MSVC_CONSTEXPR_BUG_IN_UNION_LIKE_CLASS
 
-#endif  // ABSL_USES_STD_OPTIONAL
+#endif  // ABSL_HAVE_STD_OPTIONAL
 
 #endif  // ABSL_TYPES_OPTIONAL_H_

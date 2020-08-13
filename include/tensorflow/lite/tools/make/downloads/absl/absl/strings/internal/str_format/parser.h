@@ -6,24 +6,17 @@
 #include <stdlib.h>
 
 #include <cassert>
-#include <cstdint>
 #include <initializer_list>
 #include <iosfwd>
 #include <iterator>
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "absl/strings/internal/str_format/checker.h"
 #include "absl/strings/internal/str_format/extension.h"
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 namespace str_format_internal {
-
-enum class LengthMod : std::uint8_t { h, hh, l, ll, L, j, z, t, q, none };
-
-std::string LengthModToString(LengthMod v);
 
 // The analyzed properties of a single specified conversion.
 struct UnboundConversion {
@@ -66,8 +59,8 @@ struct UnboundConversion {
   InputValue precision;
 
   Flags flags;
-  LengthMod length_mod = LengthMod::none;
-  ConversionChar conv = FormatConversionChar::kNone;
+  LengthMod length_mod;
+  ConversionChar conv;
 };
 
 // Consume conversion spec prefix (not including '%') of [p, end) if valid.
@@ -79,16 +72,13 @@ const char* ConsumeUnboundConversion(const char* p, const char* end,
                                      UnboundConversion* conv, int* next_arg);
 
 // Helper tag class for the table below.
-// It allows fast `char -> ConversionChar/LengthMod` checking and
-// conversions.
+// It allows fast `char -> ConversionChar/LengthMod` checking and conversions.
 class ConvTag {
  public:
-  constexpr ConvTag(ConversionChar conversion_char)  // NOLINT
-      : tag_(static_cast<int8_t>(conversion_char)) {}
+  constexpr ConvTag(ConversionChar::Id id) : tag_(id) {}  // NOLINT
   // We invert the length modifiers to make them negative so that we can easily
   // test for them.
-  constexpr ConvTag(LengthMod length_mod)  // NOLINT
-      : tag_(~static_cast<std::int8_t>(length_mod)) {}
+  constexpr ConvTag(LengthMod::Id id) : tag_(~id) {}  // NOLINT
   // Everything else is -128, which is negative to make is_conv() simpler.
   constexpr ConvTag() : tag_(-128) {}
 
@@ -96,11 +86,11 @@ class ConvTag {
   bool is_length() const { return tag_ < 0 && tag_ != -128; }
   ConversionChar as_conv() const {
     assert(is_conv());
-    return static_cast<ConversionChar>(tag_);
+    return ConversionChar::FromId(static_cast<ConversionChar::Id>(tag_));
   }
   LengthMod as_length() const {
     assert(is_length());
-    return static_cast<LengthMod>(~tag_);
+    return LengthMod::FromId(static_cast<LengthMod::Id>(~tag_));
   }
 
  private:
@@ -284,7 +274,7 @@ template <str_format_internal::Conv... C>
 class ExtendedParsedFormat : public str_format_internal::ParsedFormatBase {
  public:
   explicit ExtendedParsedFormat(string_view format)
-#ifdef ABSL_INTERNAL_ENABLE_FORMAT_CHECKER
+#if ABSL_INTERNAL_ENABLE_FORMAT_CHECKER
       __attribute__((
           enable_if(str_format_internal::EnsureConstexpr(format),
                     "Format std::string is not constexpr."),
@@ -327,7 +317,6 @@ class ExtendedParsedFormat : public str_format_internal::ParsedFormatBase {
       : ParsedFormatBase(s, allow_ignored, {C...}) {}
 };
 }  // namespace str_format_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_STRINGS_INTERNAL_STR_FORMAT_PARSER_H_

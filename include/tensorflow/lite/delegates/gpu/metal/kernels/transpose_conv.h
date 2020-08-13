@@ -21,7 +21,6 @@ limitations under the License.
 #include "tensorflow/lite/delegates/gpu/common/model.h"
 #include "tensorflow/lite/delegates/gpu/common/operations.h"
 #include "tensorflow/lite/delegates/gpu/metal/compute_task_descriptor.h"
-#include "tensorflow/lite/delegates/gpu/metal/environment.h"
 #include "tensorflow/lite/delegates/gpu/metal/runtime_options.h"
 
 namespace tflite {
@@ -31,15 +30,12 @@ namespace metal {
 std::vector<ComputeTaskDescriptorPtr> ConvolutionTransposed(
     int id, ValueId input_id, ValueId output_id,
     const ConvolutionTransposedAttributes& params,
-    const DeviceInfo& device_info, const RuntimeOptions& options);
+    const RuntimeOptions& options);
 
-std::vector<ComputeTaskDescriptorPtr> ConvolutionTransposed4x4(
+std::vector<ComputeTaskDescriptorPtr> ConvolutionTransposed3x3(
     int id, ValueId input_id, ValueId output_id,
     const ConvolutionTransposedAttributes& params,
-    const DeviceInfo& device_info, const RuntimeOptions& options);
-
-bool CheckConvolutionTransposed4x4Support(
-    const ConvolutionTransposedAttributes& attr);
+    const RuntimeOptions& options);
 
 }  // namespace metal
 }  // namespace gpu
