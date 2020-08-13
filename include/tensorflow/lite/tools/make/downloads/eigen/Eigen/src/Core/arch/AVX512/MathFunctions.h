@@ -29,6 +29,12 @@ namespace internal {
 #define _EIGEN_DECLARE_CONST_Packet8d_FROM_INT64(NAME, X) \
   const Packet8d p8d_##NAME = _mm512_castsi512_pd(_mm512_set1_epi64(X))
 
+#define _EIGEN_DECLARE_CONST_Packet16bf(NAME, X) \
+  const Packet16bf p16bf_##NAME = pset1<Packet16bf>(X)
+
+#define _EIGEN_DECLARE_CONST_Packet16bf_FROM_INT(NAME, X) \
+  const Packet16bf p16bf_##NAME =  preinterpret<Packet16bf,Packet16i>(pset1<Packet16i>(X))
+
 // Natural logarithm
 // Computes log(x) as log(2^e * m) = C*e + log(m), where the constant C =log(2)
 // and m is in the range [sqrt(1/2),sqrt(2)). In this range, the logarithm can
@@ -72,7 +78,7 @@ plog<Packet16f>(const Packet16f& _x) {
   x = pmax(x, p16f_min_norm_pos);
 
   // Extract the shifted exponents.
-  Packet16f emm0 = _mm512_cvtepi32_ps(_mm512_srli_epi32(preinterpret<Packet16i,Packet16f>(x), 23));
+  Packet16f emm0 = _mm512_cvtepi32_ps(_mm512_srli_epi32((preinterpret<Packet16i,Packet16f>(x)), 23));
   Packet16f e = _mm512_sub_ps(emm0, p16f_126f);
 
   // Set the exponents to -1, i.e. x are in the range [0.5,1).
@@ -128,6 +134,8 @@ plog<Packet16f>(const Packet16f& _x) {
               p16f_nan),
             p16f_minus_inf);
 }
+
+BF16_PACKET_FUNCTION(Packet16f, Packet16bf, plog)
 #endif
 
 // Exponential function. Works by writing "x = m*log(2) + r" where
@@ -253,6 +261,7 @@ pexp<Packet8d>(const Packet8d& _x) {
   return pmax(pmul(x, e), _x);
   }*/
 
+BF16_PACKET_FUNCTION(Packet16f, Packet16bf, pexp)
 
 // Functions for sqrt.
 // The EIGEN_FAST_MATH version uses the _mm_rsqrt_ps approximation and one step
@@ -303,11 +312,14 @@ template <>
 EIGEN_STRONG_INLINE Packet16f psqrt<Packet16f>(const Packet16f& x) {
   return _mm512_sqrt_ps(x);
 }
+
 template <>
 EIGEN_STRONG_INLINE Packet8d psqrt<Packet8d>(const Packet8d& x) {
   return _mm512_sqrt_pd(x);
 }
 #endif
+
+BF16_PACKET_FUNCTION(Packet16f, Packet16bf, psqrt)
 
 // prsqrt for float.
 #if defined(EIGEN_VECTORIZE_AVX512ER)
@@ -316,7 +328,6 @@ template <>
 EIGEN_STRONG_INLINE Packet16f prsqrt<Packet16f>(const Packet16f& x) {
   return _mm512_rsqrt28_ps(x);
 }
-
 #elif EIGEN_FAST_MATH
 
 template <>
@@ -347,8 +358,7 @@ prsqrt<Packet16f>(const Packet16f& _x) {
   // For other arguments, choose the output of the intrinsic. This will
   // return rsqrt(+inf) = 0, rsqrt(x) = NaN if x < 0, and rsqrt(0) = +inf.
   return _mm512_mask_blend_ps(not_finite_pos_mask, y_newton, y_approx);
-  }
-
+}
 #else
 
 template <>
@@ -356,8 +366,9 @@ EIGEN_STRONG_INLINE Packet16f prsqrt<Packet16f>(const Packet16f& x) {
   _EIGEN_DECLARE_CONST_Packet16f(one, 1.0f);
   return _mm512_div_ps(p16f_one, _mm512_sqrt_ps(x));
 }
-
 #endif
+
+BF16_PACKET_FUNCTION(Packet16f, Packet16bf, prsqrt)
 
 // prsqrt for double.
 #if EIGEN_FAST_MATH
@@ -412,10 +423,14 @@ Packet16f plog1p<Packet16f>(const Packet16f& _x) {
   return generic_plog1p(_x);
 }
 
+BF16_PACKET_FUNCTION(Packet16f, Packet16bf, plog1p)
+
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet16f pexpm1<Packet16f>(const Packet16f& _x) {
   return generic_expm1(_x);
 }
+
+BF16_PACKET_FUNCTION(Packet16f, Packet16bf, pexpm1)
 #endif
 
 #endif
@@ -438,6 +453,10 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
 ptanh<Packet16f>(const Packet16f& _x) {
   return internal::generic_fast_tanh_float(_x);
 }
+
+BF16_PACKET_FUNCTION(Packet16f, Packet16bf, psin)
+BF16_PACKET_FUNCTION(Packet16f, Packet16bf, pcos)
+BF16_PACKET_FUNCTION(Packet16f, Packet16bf, ptanh)
 
 }  // end namespace internal
 

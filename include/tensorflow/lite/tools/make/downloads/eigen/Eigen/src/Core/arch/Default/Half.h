@@ -36,16 +36,31 @@
 #ifndef EIGEN_HALF_H
 #define EIGEN_HALF_H
 
-#if __cplusplus > 199711L
+#if EIGEN_HAS_CXX11
 #define EIGEN_EXPLICIT_CAST(tgt_type) explicit operator tgt_type()
 #else
 #define EIGEN_EXPLICIT_CAST(tgt_type) operator tgt_type()
 #endif
 
+#include <sstream>
 
 namespace Eigen {
 
 struct half;
+
+// explicit conversion operators are no available before C++11 so we first cast
+// half to RealScalar rather than to std::complex<RealScalar> directly
+#if !EIGEN_HAS_CXX11
+namespace internal {
+template <typename RealScalar>
+struct cast_impl<half, std::complex<RealScalar> > {
+  EIGEN_DEVICE_FUNC static inline std::complex<RealScalar> run(const half &x)
+  {
+    return static_cast<std::complex<RealScalar> >(static_cast<RealScalar>(x));
+  }
+};
+} // namespace internal
+#endif  // EIGEN_HAS_CXX11
 
 namespace half_impl {
 
@@ -85,7 +100,7 @@ struct half_base : public __half_raw {
   #if (defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER >= 90000)
   EIGEN_DEVICE_FUNC half_base(const __half& h) : __half_raw(*(__half_raw*)&h) {}
   #endif
- #endif    
+ #endif
 #endif
 };
 
@@ -132,6 +147,11 @@ struct half : public half_impl::half_base {
       : half_impl::half_base(half_impl::float_to_half_rtne(static_cast<float>(val))) {}
   explicit EIGEN_DEVICE_FUNC half(float f)
       : half_impl::half_base(half_impl::float_to_half_rtne(f)) {}
+  // Following the convention of numpy, converting between complex and
+  // float will lead to loss of imag value.
+  template<typename RealScalar>
+  explicit EIGEN_DEVICE_FUNC half(std::complex<RealScalar> c)
+      : half_impl::half_base(half_impl::float_to_half_rtne(static_cast<float>(c.real()))) {}
 
   EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(bool) const {
     // +0.0 and -0.0 become false, everything else becomes true.
@@ -172,6 +192,11 @@ struct half : public half_impl::half_base {
   }
   EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(double) const {
     return static_cast<double>(half_impl::half_to_float(*this));
+  }
+
+  template<typename RealScalar>
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(std::complex<RealScalar>) const {
+    return std::complex<RealScalar>(static_cast<RealScalar>(*this), RealScalar(0));
   }
 };
 
@@ -705,7 +730,7 @@ struct hash<Eigen::half> {
 
 // Add the missing shfl_xor intrinsic
 #if (defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 300) || \
-  defined(EIGEN_HIP_DEVICE_COMPILE)
+  defined(EIGEN_HIPCC)
 
 __device__ EIGEN_STRONG_INLINE Eigen::half __shfl_xor(Eigen::half var, int laneMask, int width=warpSize) {
   #if (EIGEN_CUDA_SDK_VER < 90000) || \
@@ -719,13 +744,12 @@ __device__ EIGEN_STRONG_INLINE Eigen::half __shfl_xor(Eigen::half var, int laneM
 
 // ldg() has an overload for __half_raw, but we also need one for Eigen::half.
 #if (defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350) || \
-  defined(EIGEN_HIP_DEVICE_COMPILE)
+  defined(EIGEN_HIPCC)
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half __ldg(const Eigen::half* ptr) {
   return Eigen::half_impl::raw_uint16_to_half(
       __ldg(reinterpret_cast<const unsigned short*>(ptr)));
 }
 #endif
-
 
 #if defined(EIGEN_GPU_COMPILE_PHASE)
 namespace Eigen {

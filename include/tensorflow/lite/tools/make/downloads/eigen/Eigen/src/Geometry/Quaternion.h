@@ -158,6 +158,22 @@ class QuaternionBase : public RotationBase<Derived, 3>
 
   template<class OtherDerived> EIGEN_DEVICE_FUNC Quaternion<Scalar> slerp(const Scalar& t, const QuaternionBase<OtherDerived>& other) const;
 
+  /** \returns true if each coefficients of \c *this and \a other are all exactly equal.
+    * \warning When using floating point scalar values you probably should rather use a
+    *          fuzzy comparison such as isApprox()
+    * \sa isApprox(), operator!= */
+  template<class OtherDerived>
+  EIGEN_DEVICE_FUNC inline bool operator==(const QuaternionBase<OtherDerived>& other) const
+  { return coeffs() == other.coeffs(); }
+
+  /** \returns true if at least one pair of coefficients of \c *this and \a other are not exactly equal to each other.
+    * \warning When using floating point scalar values you probably should rather use a
+    *          fuzzy comparison such as isApprox()
+    * \sa isApprox(), operator== */
+  template<class OtherDerived>
+  EIGEN_DEVICE_FUNC inline bool operator!=(const QuaternionBase<OtherDerived>& other) const
+  { return coeffs() != other.coeffs(); }
+
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision
     * determined by \a prec.
     *
@@ -169,20 +185,45 @@ class QuaternionBase : public RotationBase<Derived, 3>
   /** return the result vector of \a v through the rotation*/
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Vector3 _transformVector(const Vector3& v) const;
 
+  #ifdef EIGEN_PARSED_BY_DOXYGEN
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
     * Note that if \a NewScalarType is equal to the current scalar type of \c *this
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  EIGEN_DEVICE_FUNC inline typename internal::cast_return_type<Derived,Quaternion<NewScalarType> >::type cast() const
+  EIGEN_DEVICE_FUNC inline typename internal::cast_return_type<Derived,Quaternion<NewScalarType> >::type cast() const;
+
+  #else
+
+  template<typename NewScalarType>
+  EIGEN_DEVICE_FUNC inline
+  typename internal::enable_if<internal::is_same<Scalar,NewScalarType>::value,const Derived&>::type cast() const
   {
-    return typename internal::cast_return_type<Derived,Quaternion<NewScalarType> >::type(derived());
+    return derived();
   }
+
+  template<typename NewScalarType>
+  EIGEN_DEVICE_FUNC inline
+  typename internal::enable_if<!internal::is_same<Scalar,NewScalarType>::value,Quaternion<NewScalarType> >::type cast() const
+  {
+    return Quaternion<NewScalarType>(coeffs().template cast<NewScalarType>());
+  }
+  #endif
+
+#ifndef EIGEN_NO_IO
+  friend std::ostream& operator<<(std::ostream& s, const QuaternionBase<Derived>& q) {
+    s << q.x() << "i + " << q.y() << "j + " << q.z() << "k" << " + " << q.w();
+    return s;
+  }
+#endif
 
 #ifdef EIGEN_QUATERNIONBASE_PLUGIN
 # include EIGEN_QUATERNIONBASE_PLUGIN
 #endif
+protected:
+  EIGEN_DEFAULT_COPY_CONSTRUCTOR(QuaternionBase)
+  EIGEN_DEFAULT_EMPTY_CONSTRUCTOR_AND_DESTRUCTOR(QuaternionBase)
 };
 
 /***************************************************************************
@@ -289,12 +330,6 @@ public:
     m_coeffs = std::move(other.coeffs());
     return *this;
   }
-
-  // And now because we declared a constructor, we don't get an implicit copy constructor. Say we want one.
-  /** Default copy constructor */
-  EIGEN_DEVICE_FUNC Quaternion(const Quaternion& other)
-    : m_coeffs(other.coeffs())
-  {}
 #endif
 
   EIGEN_DEVICE_FUNC static Quaternion UnitRandom();
