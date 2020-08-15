@@ -158,6 +158,22 @@ class QuaternionBase : public RotationBase<Derived, 3>
 
   template<class OtherDerived> EIGEN_DEVICE_FUNC Quaternion<Scalar> slerp(const Scalar& t, const QuaternionBase<OtherDerived>& other) const;
 
+  /** \returns true if each coefficients of \c *this and \a other are all exactly equal.
+    * \warning When using floating point scalar values you probably should rather use a
+    *          fuzzy comparison such as isApprox()
+    * \sa isApprox(), operator!= */
+  template<class OtherDerived>
+  EIGEN_DEVICE_FUNC inline bool operator==(const QuaternionBase<OtherDerived>& other) const
+  { return coeffs() == other.coeffs(); }
+
+  /** \returns true if at least one pair of coefficients of \c *this and \a other are not exactly equal to each other.
+    * \warning When using floating point scalar values you probably should rather use a
+    *          fuzzy comparison such as isApprox()
+    * \sa isApprox(), operator== */
+  template<class OtherDerived>
+  EIGEN_DEVICE_FUNC inline bool operator!=(const QuaternionBase<OtherDerived>& other) const
+  { return coeffs() != other.coeffs(); }
+
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision
     * determined by \a prec.
     *
@@ -181,19 +197,26 @@ class QuaternionBase : public RotationBase<Derived, 3>
   #else
 
   template<typename NewScalarType>
-  EIGEN_DEVICE_FUNC inline 
+  EIGEN_DEVICE_FUNC inline
   typename internal::enable_if<internal::is_same<Scalar,NewScalarType>::value,const Derived&>::type cast() const
   {
     return derived();
   }
 
   template<typename NewScalarType>
-  EIGEN_DEVICE_FUNC inline 
+  EIGEN_DEVICE_FUNC inline
   typename internal::enable_if<!internal::is_same<Scalar,NewScalarType>::value,Quaternion<NewScalarType> >::type cast() const
   {
     return Quaternion<NewScalarType>(coeffs().template cast<NewScalarType>());
   }
   #endif
+
+#ifndef EIGEN_NO_IO
+  friend std::ostream& operator<<(std::ostream& s, const QuaternionBase<Derived>& q) {
+    s << q.x() << "i + " << q.y() << "j + " << q.z() << "k" << " + " << q.w();
+    return s;
+  }
+#endif
 
 #ifdef EIGEN_QUATERNIONBASE_PLUGIN
 # include EIGEN_QUATERNIONBASE_PLUGIN

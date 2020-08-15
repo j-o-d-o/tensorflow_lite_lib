@@ -288,6 +288,9 @@
         #ifdef __AVX512ER__
           #define EIGEN_VECTORIZE_AVX512ER
         #endif
+        #ifdef __AVX512BF16__
+          #define EIGEN_VECTORIZE_AVX512BF16
+        #endif
       #endif
     #endif
 
@@ -439,9 +442,6 @@
 #if defined(EIGEN_HIPCC)
   #define EIGEN_VECTORIZE_GPU
   #include <hip/hip_vector_types.h>
-#endif
-
-#if defined(EIGEN_HIP_DEVICE_COMPILE)
   #define EIGEN_HAS_HIP_FP16
   #include <hip/hip_fp16.h>
 #endif
