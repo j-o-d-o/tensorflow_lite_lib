@@ -1,6 +1,7 @@
 # Tensorflow Lite - Prebuilt Lib
 
 Built with: https://github.com/tensorflow/tensorflow/tree/d855adfc5a0195788bf5f92c3c7352e638aa1109 (matching the edgetpu version: https://coral.ai/docs/edgetpu/tflite-cpp/#build-your-project)</br>
+Note: There is a bug in the MAKEFILE in this commit and this change has to be applied https://github.com/tensorflow/tensorflow/commit/72cd947f231950d7ecd1406b5a67388fef7133ea. </br>
 To build new version use this how to: https://www.tensorflow.org/lite/guide/build_arm64 (also run build_lib.sh to get standard x86 lib files) and run `>> bash copy_files.sh --path==/PATH/TO/TENSORFLOW/LITE`
 
 Note: GPU support for x86 does not work: follow this ticket (https://github.com/tensorflow/tensorflow/issues/34922)
