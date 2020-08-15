@@ -16,7 +16,19 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_DELEGATES_GPU_METAL_DELEGATE_H_
 #define TENSORFLOW_LITE_DELEGATES_GPU_METAL_DELEGATE_H_
 
-#include "tensorflow/lite/c/common.h"
+#ifdef SWIG
+#define TFL_CAPI_EXPORT
+#else
+#if defined(_WIN32)
+#ifdef TFL_COMPILE_LIBRARY
+#define TFL_CAPI_EXPORT __declspec(dllexport)
+#else
+#define TFL_CAPI_EXPORT __declspec(dllimport)
+#endif  // TFL_COMPILE_LIBRARY
+#else
+#define TFL_CAPI_EXPORT __attribute__((visibility("default")))
+#endif  // _WIN32
+#endif  // SWIG
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,8 +58,6 @@ typedef struct {
   // Allows to quantify tensors, downcast values, process in float16 etc.
   bool allow_precision_loss;
   TFLGpuDelegateWaitType wait_type;
-  // Allows execution of integer quantized models
-  bool enable_quantization;
 } TFLGpuDelegateOptions;
 
 // Creates a new delegate instance that need to be destroyed with

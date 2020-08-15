@@ -30,10 +30,10 @@ namespace cl {
 class Pooling : public GPUOperation {
  public:
   Pooling(const OperationDef& definition, const Pooling2DAttributes& attr);
-  Pooling(const OperationDef& definition, const Pooling3DAttributes& attr);
+  Status AddToQueue(CLCommandQueue* queue) override;
+  Status Tune(const TuningParameters& params) override;
 
-  absl::Status BindArguments() override;
-  int3 GetGridSize() const override;
+  Status Compile(const CreationContext& creation_context) override;
 
   // Move only
   Pooling(Pooling&& kernel);
@@ -42,27 +42,54 @@ class Pooling : public GPUOperation {
   Pooling& operator=(const Pooling&) = delete;
 
  private:
-  std::string GetAveragePoolingKernelCode(const OperationDef& op_def,
-                                          bool stride_correction);
-  std::string GetMaxPoolingKernelCode(const OperationDef& op_def,
-                                      bool stride_correction,
-                                      bool output_indices);
+  Status BindArguments();
+  int3 GetGridSize() const;
 
-  void GenerateCode();
-
-  int4 stride_;
-  int4 padding_;
-  int4 kernel_size_;
+  int2 stride_;
+  int2 padding_;
+  int2 kernel_size_;
 
   PoolingType type_;
   bool output_indices_;
+
+  CLKernel kernel_;
+  int3 work_group_size_ = int3(8, 4, 1);
 };
 
 Pooling CreatePooling(const OperationDef& definition,
                       const Pooling2DAttributes& attr);
 
-Pooling CreatePooling(const OperationDef& definition,
-                      const Pooling3DAttributes& attr);
+class Pooling3D : public GPUOperation {
+ public:
+  Pooling3D(const OperationDef& definition, const Pooling3DAttributes& attr);
+  Status AddToQueue(CLCommandQueue* queue) override;
+  Status Tune(const TuningParameters& params) override;
+
+  Status Compile(const CreationContext& creation_context) override;
+
+  // Move only
+  Pooling3D(Pooling3D&& kernel);
+  Pooling3D& operator=(Pooling3D&& kernel);
+  Pooling3D(const Pooling3D&) = delete;
+  Pooling3D& operator=(const Pooling3D&) = delete;
+
+ private:
+  Status BindArguments();
+  int3 GetGridSize() const;
+
+  int3 stride_;
+  int3 padding_;
+  int3 kernel_size_;
+
+  PoolingType type_;
+  bool output_indices_;
+
+  CLKernel kernel_;
+  int3 work_group_size_ = int3(8, 4, 1);
+};
+
+Pooling3D CreatePooling3D(const OperationDef& definition,
+                          const Pooling3DAttributes& attr);
 
 }  // namespace cl
 }  // namespace gpu

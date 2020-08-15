@@ -27,7 +27,6 @@
 #include <functional>
 #include <string>
 
-#include "absl/base/config.h"
 #include "absl/strings/string_view.h"
 
 // -----------------------------------------------------------------------------
@@ -55,7 +54,6 @@
 //     Shows help on modules whose name contains the specified substring
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 
 namespace flags_internal {
 using FlagKindFilter = std::function<bool (absl::string_view)>;
@@ -103,7 +101,7 @@ struct FlagsUsageConfig {
   //   normalize_filename("/my_company/some_long_path/src/project/file.cc")
   // might produce
   //   "project/file.cc".
-  std::function<std::string(absl::string_view)> normalize_filename;
+  std::function<std::string (absl::string_view)> normalize_filename;
 };
 
 // SetFlagsUsageConfig()
@@ -120,7 +118,6 @@ FlagsUsageConfig GetUsageConfig();
 void ReportUsageError(absl::string_view msg, bool is_fatal);
 
 }  // namespace flags_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 extern "C" {

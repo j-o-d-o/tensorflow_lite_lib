@@ -22,17 +22,7 @@ limitations under the License.
 namespace tflite {
 namespace gpu {
 
-// The VendorID returned by the GPU driver.
-enum class GpuType {
-  UNKNOWN,
-  APPLE,
-  MALI,
-  ADRENO,
-  POWERVR,
-  INTEL,
-  AMD,
-  NVIDIA,
-};
+enum class GpuType { UNKNOWN, MALI, ADRENO, POWERVR, INTEL, NVIDIA };
 enum class GpuModel {
   UNKNOWN,
   // Adreno 6xx series

@@ -25,20 +25,17 @@
 
 #include "absl/base/config.h"
 
-#ifdef ABSL_USES_STD_VARIANT
+#ifdef ABSL_HAVE_STD_VARIANT
 
 #include <variant>
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 using std::bad_variant_access;
-ABSL_NAMESPACE_END
 }  // namespace absl
 
-#else  // ABSL_USES_STD_VARIANT
+#else  // ABSL_HAVE_STD_VARIANT
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 
 // -----------------------------------------------------------------------------
 // bad_variant_access
@@ -74,9 +71,8 @@ namespace variant_internal {
 [[noreturn]] void Rethrow();
 
 }  // namespace variant_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
-#endif  // ABSL_USES_STD_VARIANT
+#endif  // ABSL_HAVE_STD_VARIANT
 
 #endif  // ABSL_TYPES_BAD_VARIANT_ACCESS_H_

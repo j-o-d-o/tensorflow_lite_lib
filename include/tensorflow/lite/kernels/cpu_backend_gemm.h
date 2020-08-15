@@ -18,7 +18,6 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/kernels/cpu_backend_context.h"
 #include "tensorflow/lite/kernels/cpu_backend_gemm_custom_gemv.h"
 #include "tensorflow/lite/kernels/cpu_backend_gemm_params.h"
@@ -95,45 +94,16 @@ void Gemm(const MatrixParams<LhsScalar>& lhs_params, const LhsScalar* lhs_data,
           CpuBackendContext* context) {
   ruy::profiler::ScopeLabel label("cpu_backend_gemm::Gemm");
   ValidateParams(lhs_params, rhs_params, dst_params, params);
-  // In some cases we want to unconditionally use ruy as the backend, overriding
-  // the `tflite_with_ruy` setting and the platform default.
-  bool must_use_ruy = false;
-  if (context->use_caching()) {
-    // Only ruy supports caching of pre-packed matrices. Due to the large
-    // performance impact in the cases where it's typically used, this overrides
-    // the default.
-    must_use_ruy = true;
-  }
-  if (lhs_params.order != Order::kRowMajor ||
-      rhs_params.order != Order::kColMajor ||
-      dst_params.order != Order::kColMajor) {
-    // ruy supports all 2^3=8 combinations of storage orders with comparable
-    // performance. In ruy, it's only a runtime switch. In other backends
-    // (gemmlowp, Eigen), storage orders are template parameters, supporting
-    // all 8 combinations would be up to a 8-fold code size increase, so we
-    // prefer to force usage of ruy in these cases.
-    must_use_ruy = true;
-  }
-  if (must_use_ruy) {
-    detail::GemmImplUsingRuy<LhsScalar, RhsScalar, AccumScalar, DstScalar,
-                             quantization_flavor>::Run(lhs_params, lhs_data,
-                                                       rhs_params, rhs_data,
-                                                       dst_params, dst_data,
-                                                       params, context);
-    return;
-  }
-  // If we did not choose to force usage of ruy above, then we may now consider
-  // using custom GEMV code for the matrix*vector cases.
-  const bool try_custom_gemv = (dst_params.cols == 1);
-  if (try_custom_gemv) {
-    // GEMV case: try a custom fast GEMV path. It will return true if it
-    // actually handled it.
+#ifndef TFLITE_WITH_RUY_GEMV
+  if (dst_params.cols == 1) {
+    // GEMV case: try a custom fast GEMV path.
     if (detail::CustomGemv(lhs_params, lhs_data, rhs_params, rhs_data,
                            dst_params, dst_data, params, context)) {
       return;
     }
   }
-  // Generic case: dispatch to any backend as a general GEMM.
+#endif
+  ruy::profiler::ScopeLabel label2("cpu_backend_gemm::Gemm: general GEMM");
   GemmImpl<LhsScalar, RhsScalar, AccumScalar, DstScalar,
            quantization_flavor>::Run(lhs_params, lhs_data, rhs_params, rhs_data,
                                      dst_params, dst_data, params, context);

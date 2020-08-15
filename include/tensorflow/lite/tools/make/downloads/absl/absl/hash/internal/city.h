@@ -47,13 +47,9 @@
 
 #include <stdint.h>
 #include <stdlib.h>  // for size_t.
-
 #include <utility>
 
-#include "absl/base/config.h"
-
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 namespace hash_internal {
 
 typedef std::pair<uint64_t, uint64_t> uint128;
@@ -90,7 +86,6 @@ inline uint64_t Hash128to64(const uint128 &x) {
 }
 
 }  // namespace hash_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_HASH_INTERNAL_CITY_H_

@@ -20,7 +20,6 @@ limitations under the License.
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "tensorflow/lite/tools/evaluation/evaluation_delegate_provider.h"
 #include "tensorflow/lite/tools/evaluation/evaluation_stage.h"
 #include "tensorflow/lite/tools/evaluation/proto/evaluation_config.pb.h"
 #include "tensorflow/lite/tools/evaluation/proto/evaluation_stages.pb.h"
@@ -44,8 +43,7 @@ class ObjectDetectionStage : public EvaluationStage {
   explicit ObjectDetectionStage(const EvaluationStageConfig& config)
       : EvaluationStage(config) {}
 
-  TfLiteStatus Init() override { return Init(nullptr); }
-  TfLiteStatus Init(const DelegateProviders* delegate_providers);
+  TfLiteStatus Init() override;
 
   TfLiteStatus Run() override;
 
@@ -97,7 +95,7 @@ class ObjectDetectionStage : public EvaluationStage {
 // preprocess_coco_minival.py script in evaluation/tasks/coco_object_detection.
 // Useful for wrappers/scripts that use ObjectDetectionStage.
 TfLiteStatus PopulateGroundTruth(
-    const std::string& grouth_truth_proto_file,
+    const std::string& grouth_truth_pbtxt_file,
     absl::flat_hash_map<std::string, ObjectDetectionResult>*
         ground_truth_mapping);
 

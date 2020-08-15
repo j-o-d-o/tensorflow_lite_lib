@@ -20,12 +20,11 @@ limitations under the License.
 namespace tflite {
 namespace reference_integer_ops {
 
-template <typename integer_type>
 inline void Mean(const tflite::MeanParams& op_params, int32_t multiplier,
                  int32_t shift, const RuntimeShape& unextended_input_shape,
-                 const integer_type* input_data, int32 input_zero_point,
+                 const int8_t* input_data, int32 input_zero_point,
                  const RuntimeShape& unextended_output_shape,
-                 integer_type* output_data, int32 output_zero_point) {
+                 int8_t* output_data, int32 output_zero_point) {
   // Current implementation only supports dimension equals 4 and simultaneous
   // reduction over width and height.
   TFLITE_CHECK_EQ(unextended_input_shape.DimensionsCount(), 4);
@@ -48,8 +47,8 @@ inline void Mean(const tflite::MeanParams& op_params, int32_t multiplier,
   TFLITE_CHECK_EQ(output_height, 1);
   TFLITE_CHECK_EQ(output_width, 1);
 
-  static constexpr int32_t kMinInt = std::numeric_limits<integer_type>::min();
-  static constexpr int32_t kMaxInt = std::numeric_limits<integer_type>::max();
+  static constexpr int32_t kMinInt8 = std::numeric_limits<int8_t>::min();
+  static constexpr int32_t kMaxInt8 = std::numeric_limits<int8_t>::max();
 
   for (int out_b = 0; out_b < output_batch; ++out_b) {
     for (int out_d = 0; out_d < output_depth; ++out_d) {
@@ -64,9 +63,9 @@ inline void Mean(const tflite::MeanParams& op_params, int32_t multiplier,
       acc = acc > 0 ? (acc + num_elements_in_axis / 2) / num_elements_in_axis
                     : (acc - num_elements_in_axis / 2) / num_elements_in_axis;
       acc += output_zero_point;
-      acc = std::min(std::max(acc, kMinInt), kMaxInt);
+      acc = std::min(std::max(acc, kMinInt8), kMaxInt8);
       output_data[Offset(output_shape, out_b, 0, 0, out_d)] =
-          static_cast<integer_type>(acc);
+          static_cast<int8_t>(acc);
     }
   }
 }

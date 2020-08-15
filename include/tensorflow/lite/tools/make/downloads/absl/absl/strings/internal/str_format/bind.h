@@ -7,13 +7,13 @@
 #include <string>
 
 #include "absl/base/port.h"
+#include "absl/container/inlined_vector.h"
 #include "absl/strings/internal/str_format/arg.h"
 #include "absl/strings/internal/str_format/checker.h"
 #include "absl/strings/internal/str_format/parser.h"
 #include "absl/types/span.h"
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 
 class UntypedFormatSpec;
 
@@ -74,7 +74,7 @@ class FormatSpecTemplate
   using Base = typename MakeDependent<UntypedFormatSpec, Args...>::type;
 
  public:
-#ifdef ABSL_INTERNAL_ENABLE_FORMAT_CHECKER
+#if ABSL_INTERNAL_ENABLE_FORMAT_CHECKER
 
   // Honeypot overload for when the std::string is not constexpr.
   // We use the 'unavailable' attribute to give a better compiler error than
@@ -122,8 +122,8 @@ class FormatSpecTemplate
 #endif  // ABSL_INTERNAL_ENABLE_FORMAT_CHECKER
 
   template <Conv... C, typename = typename std::enable_if<
-                           AllOf(sizeof...(C) == sizeof...(Args),
-                             Contains(ArgumentToConv<Args>(),
+                           sizeof...(C) == sizeof...(Args) &&
+                           AllOf(Contains(ArgumentToConv<Args>(),
                                           C)...)>::type>
   FormatSpecTemplate(const ExtendedParsedFormat<C...>& pc)  // NOLINT
       : Base(&pc) {}
@@ -138,17 +138,7 @@ class Streamable {
  public:
   Streamable(const UntypedFormatSpecImpl& format,
              absl::Span<const FormatArgImpl> args)
-      : format_(format) {
-    if (args.size() <= ABSL_ARRAYSIZE(few_args_)) {
-      for (size_t i = 0; i < args.size(); ++i) {
-        few_args_[i] = args[i];
-      }
-      args_ = absl::MakeSpan(few_args_, args.size());
-    } else {
-      many_args_.assign(args.begin(), args.end());
-      args_ = many_args_;
-    }
-  }
+      : format_(format), args_(args.begin(), args.end()) {}
 
   std::ostream& Print(std::ostream& os) const;
 
@@ -158,12 +148,7 @@ class Streamable {
 
  private:
   const UntypedFormatSpecImpl& format_;
-  absl::Span<const FormatArgImpl> args_;
-  // if args_.size() is 4 or less:
-  FormatArgImpl few_args_[4] = {FormatArgImpl(0), FormatArgImpl(0),
-                                FormatArgImpl(0), FormatArgImpl(0)};
-  // if args_.size() is more than 4:
-  std::vector<FormatArgImpl> many_args_;
+  absl::InlinedVector<FormatArgImpl, 4> args_;
 };
 
 // for testing
@@ -179,8 +164,12 @@ bool FormatUntyped(FormatRawSinkImpl raw_sink,
 std::string& AppendPack(std::string* out, UntypedFormatSpecImpl format,
                         absl::Span<const FormatArgImpl> args);
 
-std::string FormatPack(const UntypedFormatSpecImpl format,
-                       absl::Span<const FormatArgImpl> args);
+inline std::string FormatPack(const UntypedFormatSpecImpl format,
+                              absl::Span<const FormatArgImpl> args) {
+  std::string out;
+  AppendPack(&out, format, args);
+  return out;
+}
 
 int FprintF(std::FILE* output, UntypedFormatSpecImpl format,
             absl::Span<const FormatArgImpl> args);
@@ -203,7 +192,6 @@ class StreamedWrapper {
 };
 
 }  // namespace str_format_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_STRINGS_INTERNAL_STR_FORMAT_BIND_H_

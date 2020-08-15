@@ -27,8 +27,10 @@ namespace cl {
 
 class LSTM : public GPUOperation {
  public:
-  LSTM(const OperationDef& definition, const DeviceInfo& device_info);
-  int3 GetGridSize() const override;
+  explicit LSTM(const OperationDef& definition);
+  Status AddToQueue(CLCommandQueue* queue) override;
+  Status Tune(const TuningParameters& params) override;
+  Status Compile(const CreationContext& creation_context) override;
 
   // Move only
   LSTM(LSTM&& kernel);
@@ -37,11 +39,14 @@ class LSTM : public GPUOperation {
   LSTM& operator=(const LSTM&) = delete;
 
  private:
-  std::string GetLSTMCode(const OperationDef& op_def,
-                          const DeviceInfo& device_info);
+  Status BindArguments();
+  int3 GetGridSize() const;
+
+  CLKernel kernel_;
+  int3 work_group_size_ = int3(8, 4, 1);
 };
 
-LSTM CreateLSTM(const OperationDef& definition, const DeviceInfo& device_info);
+LSTM CreateLSTM(const OperationDef& definition);
 
 }  // namespace cl
 }  // namespace gpu

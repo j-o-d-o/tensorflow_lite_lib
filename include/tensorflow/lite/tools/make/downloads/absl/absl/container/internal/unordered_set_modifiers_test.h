@@ -21,7 +21,6 @@
 #include "absl/container/internal/hash_policy_testing.h"
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 namespace container_internal {
 
 template <class UnordSet>
@@ -184,7 +183,6 @@ REGISTER_TYPED_TEST_CASE_P(ModifiersTest, Clear, Insert, InsertHint,
                            EraseKey, Swap);
 
 }  // namespace container_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_CONTAINER_INTERNAL_UNORDERED_SET_MODIFIERS_TEST_H_

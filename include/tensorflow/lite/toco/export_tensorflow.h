@@ -20,8 +20,7 @@ limitations under the License.
 
 namespace toco {
 
-void ExportTensorFlowGraphDef(const Model& model,
-                              std::string* output_file_contents);
+void ExportTensorFlowGraphDef(const Model& model, string* output_file_contents);
 
 void EncodeConstantArraysMinMaxByWrappingThemInFakeQuantNodes(Model* model);
 

@@ -22,7 +22,6 @@
 #include "absl/types/optional.h"
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 namespace container_internal {
 
 template <class, class = void>
@@ -56,7 +55,7 @@ class node_handle_base {
  public:
   using allocator_type = Alloc;
 
-  constexpr node_handle_base() = default;
+  constexpr node_handle_base() {}
   node_handle_base(node_handle_base&& other) noexcept {
     *this = std::move(other);
   }
@@ -78,16 +77,8 @@ class node_handle_base {
  protected:
   friend struct CommonAccess;
 
-  struct transfer_tag_t {};
-  node_handle_base(transfer_tag_t, const allocator_type& a, slot_type* s)
-      : alloc_(a) {
+  node_handle_base(const allocator_type& a, slot_type* s) : alloc_(a) {
     PolicyTraits::transfer(alloc(), slot(), s);
-  }
-
-  struct move_tag_t {};
-  node_handle_base(move_tag_t, const allocator_type& a, slot_type* s)
-      : alloc_(a) {
-    PolicyTraits::construct(alloc(), slot(), s);
   }
 
   void destroy() {
@@ -109,15 +100,16 @@ class node_handle_base {
   allocator_type* alloc() { return std::addressof(*alloc_); }
 
  private:
-  absl::optional<allocator_type> alloc_ = {};
-  alignas(slot_type) mutable unsigned char slot_space_[sizeof(slot_type)] = {};
+  absl::optional<allocator_type> alloc_;
+  mutable absl::aligned_storage_t<sizeof(slot_type), alignof(slot_type)>
+      slot_space_;
 };
 
 // For sets.
 template <typename Policy, typename PolicyTraits, typename Alloc,
           typename = void>
 class node_handle : public node_handle_base<PolicyTraits, Alloc> {
-  using Base = node_handle_base<PolicyTraits, Alloc>;
+  using Base = typename node_handle::node_handle_base;
 
  public:
   using value_type = typename PolicyTraits::value_type;
@@ -129,7 +121,7 @@ class node_handle : public node_handle_base<PolicyTraits, Alloc> {
  private:
   friend struct CommonAccess;
 
-  using Base::Base;
+  node_handle(const Alloc& a, typename Base::slot_type* s) : Base(a, s) {}
 };
 
 // For maps.
@@ -137,7 +129,7 @@ template <typename Policy, typename PolicyTraits, typename Alloc>
 class node_handle<Policy, PolicyTraits, Alloc,
                   absl::void_t<typename Policy::mapped_type>>
     : public node_handle_base<PolicyTraits, Alloc> {
-  using Base = node_handle_base<PolicyTraits, Alloc>;
+  using Base = typename node_handle::node_handle_base;
 
  public:
   using key_type = typename Policy::key_type;
@@ -156,7 +148,7 @@ class node_handle<Policy, PolicyTraits, Alloc,
  private:
   friend struct CommonAccess;
 
-  using Base::Base;
+  node_handle(const Alloc& a, typename Base::slot_type* s) : Base(a, s) {}
 };
 
 // Provide access to non-public node-handle functions.
@@ -167,23 +159,13 @@ struct CommonAccess {
   }
 
   template <typename Node>
-  static void Destroy(Node* node) {
-    node->destroy();
-  }
-
-  template <typename Node>
   static void Reset(Node* node) {
     node->reset();
   }
 
   template <typename T, typename... Args>
-  static T Transfer(Args&&... args) {
-    return T(typename T::transfer_tag_t{}, std::forward<Args>(args)...);
-  }
-
-  template <typename T, typename... Args>
-  static T Move(Args&&... args) {
-    return T(typename T::move_tag_t{}, std::forward<Args>(args)...);
+  static T Make(Args&&... args) {
+    return T(std::forward<Args>(args)...);
   }
 };
 
@@ -196,7 +178,6 @@ struct InsertReturnType {
 };
 
 }  // namespace container_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_CONTAINER_INTERNAL_CONTAINER_H_

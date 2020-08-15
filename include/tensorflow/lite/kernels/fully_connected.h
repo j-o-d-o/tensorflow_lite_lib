@@ -29,8 +29,6 @@ namespace builtin {
 TfLiteRegistration* Register_FULLY_CONNECTED_REF();
 TfLiteRegistration* Register_FULLY_CONNECTED_GENERIC_OPT();
 TfLiteRegistration* Register_FULLY_CONNECTED_PIE();
-TfLiteRegistration* Register_FULLY_CONNECTED_SPARSE_REF();
-TfLiteRegistration* Register_FULLY_CONNECTED_SPARSE_OPT();
 }  // namespace builtin
 }  // namespace ops
 }  // namespace tflite

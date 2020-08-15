@@ -76,11 +76,6 @@ extern const char* kModelWithFCOp;
 // reshape->custom->custom->squeeze.
 extern const char* kModelMixed;
 
-// Test model with mixed quantizable and
-// and un-quantizable ops for
-// activations in 16-bit.
-extern const char* kModelMixed16x8;
-
 // Test model with split op.
 extern const char* kModelSplit;
 
@@ -102,9 +97,6 @@ extern const char* kModelWithMaximumOp;
 // projection, without cifg.
 extern const char* kLstmCalibrated2;
 extern const char* kLstmQuantized2;
-
-// Test model with a transpose op.
-extern const char* kModelWithTranspose;
 
 // Test model with SVDF op.
 extern const char* kSvdfCalibrated;

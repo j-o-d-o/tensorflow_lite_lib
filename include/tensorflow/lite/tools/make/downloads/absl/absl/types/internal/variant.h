@@ -37,10 +37,9 @@
 #include "absl/types/bad_variant_access.h"
 #include "absl/utility/utility.h"
 
-#if !defined(ABSL_USES_STD_VARIANT)
+#if !defined(ABSL_HAVE_STD_VARIANT)
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 
 template <class... Types>
 class variant;
@@ -205,7 +204,7 @@ template <class Op, class... Vs>
 using VisitIndicesResultT = typename VisitIndicesResultImpl<Op, Vs...>::type;
 
 template <class ReturnType, class FunctionObject, class EndIndices,
-          class BoundIndices>
+          std::size_t... BoundIndices>
 struct MakeVisitationMatrix;
 
 template <class ReturnType, class FunctionObject, std::size_t... Indices>
@@ -219,7 +218,7 @@ constexpr ReturnType call_with_indices(FunctionObject&& function) {
 
 template <class ReturnType, class FunctionObject, std::size_t... BoundIndices>
 struct MakeVisitationMatrix<ReturnType, FunctionObject, index_sequence<>,
-                            index_sequence<BoundIndices...>> {
+                            BoundIndices...> {
   using ResultType = ReturnType (*)(FunctionObject&&);
   static constexpr ResultType Run() {
     return &call_with_indices<ReturnType, FunctionObject,
@@ -227,34 +226,24 @@ struct MakeVisitationMatrix<ReturnType, FunctionObject, index_sequence<>,
   }
 };
 
-template <typename Is, std::size_t J>
-struct AppendToIndexSequence;
-
-template <typename Is, std::size_t J>
-using AppendToIndexSequenceT = typename AppendToIndexSequence<Is, J>::type;
-
-template <std::size_t... Is, std::size_t J>
-struct AppendToIndexSequence<index_sequence<Is...>, J> {
-  using type = index_sequence<Is..., J>;
-};
-
 template <class ReturnType, class FunctionObject, class EndIndices,
-          class CurrIndices, class BoundIndices>
+          class CurrIndices, std::size_t... BoundIndices>
 struct MakeVisitationMatrixImpl;
 
-template <class ReturnType, class FunctionObject, class EndIndices,
-          std::size_t... CurrIndices, class BoundIndices>
-struct MakeVisitationMatrixImpl<ReturnType, FunctionObject, EndIndices,
-                                index_sequence<CurrIndices...>, BoundIndices> {
+template <class ReturnType, class FunctionObject, std::size_t... EndIndices,
+          std::size_t... CurrIndices, std::size_t... BoundIndices>
+struct MakeVisitationMatrixImpl<
+    ReturnType, FunctionObject, index_sequence<EndIndices...>,
+    index_sequence<CurrIndices...>, BoundIndices...> {
   using ResultType = SimpleArray<
-      typename MakeVisitationMatrix<ReturnType, FunctionObject, EndIndices,
-                                    index_sequence<>>::ResultType,
+      typename MakeVisitationMatrix<ReturnType, FunctionObject,
+                                    index_sequence<EndIndices...>>::ResultType,
       sizeof...(CurrIndices)>;
 
   static constexpr ResultType Run() {
-    return {{MakeVisitationMatrix<
-        ReturnType, FunctionObject, EndIndices,
-        AppendToIndexSequenceT<BoundIndices, CurrIndices>>::Run()...}};
+    return {{MakeVisitationMatrix<ReturnType, FunctionObject,
+                                  index_sequence<EndIndices...>,
+                                  BoundIndices..., CurrIndices>::Run()...}};
   }
 };
 
@@ -262,11 +251,10 @@ template <class ReturnType, class FunctionObject, std::size_t HeadEndIndex,
           std::size_t... TailEndIndices, std::size_t... BoundIndices>
 struct MakeVisitationMatrix<ReturnType, FunctionObject,
                             index_sequence<HeadEndIndex, TailEndIndices...>,
-                            index_sequence<BoundIndices...>>
-    : MakeVisitationMatrixImpl<ReturnType, FunctionObject,
-                               index_sequence<TailEndIndices...>,
-                               absl::make_index_sequence<HeadEndIndex>,
-                               index_sequence<BoundIndices...>> {};
+                            BoundIndices...>
+    : MakeVisitationMatrixImpl<
+          ReturnType, FunctionObject, index_sequence<TailEndIndices...>,
+          absl::make_index_sequence<HeadEndIndex>, BoundIndices...> {};
 
 struct UnreachableSwitchCase {
   template <class Op>
@@ -435,8 +423,7 @@ struct VisitIndicesFallback {
   static VisitIndicesResultT<Op, SizeT...> Run(Op&& op, SizeT... indices) {
     return AccessSimpleArray(
         MakeVisitationMatrix<VisitIndicesResultT<Op, SizeT...>, Op,
-                             index_sequence<(EndIndices + 1)...>,
-                             index_sequence<>>::Run(),
+                             index_sequence<(EndIndices + 1)...>>::Run(),
         (indices + 1)...)(absl::forward<Op>(op));
   }
 };
@@ -1639,8 +1626,7 @@ struct VariantHashBase<Variant,
 };
 
 }  // namespace variant_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
-#endif  // !defined(ABSL_USES_STD_VARIANT)
+#endif  // !defined(ABSL_HAVE_STD_VARIANT)
 #endif  // ABSL_TYPES_variant_internal_H_

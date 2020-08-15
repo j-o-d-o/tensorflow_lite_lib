@@ -19,7 +19,6 @@
 #include <string>
 #include <vector>
 
-#include "absl/base/config.h"
 #include "absl/flags/declare.h"
 
 ABSL_DECLARE_FLAG(std::vector<std::string>, flagfile);
@@ -28,7 +27,6 @@ ABSL_DECLARE_FLAG(std::vector<std::string>, tryfromenv);
 ABSL_DECLARE_FLAG(std::vector<std::string>, undefok);
 
 namespace absl {
-ABSL_NAMESPACE_BEGIN
 namespace flags_internal {
 
 enum class ArgvListAction { kRemoveParsedArgs, kKeepParsedArgs };
@@ -45,7 +43,6 @@ std::vector<char*> ParseCommandLineImpl(int argc, char* argv[],
                                         OnUndefinedFlag on_undef_flag);
 
 }  // namespace flags_internal
-ABSL_NAMESPACE_END
 }  // namespace absl
 
 #endif  // ABSL_FLAGS_INTERNAL_PARSE_H_

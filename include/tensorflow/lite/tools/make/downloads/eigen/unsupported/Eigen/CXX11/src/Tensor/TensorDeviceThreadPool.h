@@ -190,11 +190,9 @@ struct ThreadPoolDevice {
   void parallelFor(Index n, const TensorOpCost& cost,
                    std::function<Index(Index)> block_align,
                    std::function<void(Index, Index)> f) const {
-    if (EIGEN_PREDICT_FALSE(n <= 0)){
-      return;
     // Compute small problems directly in the caller thread.
-    } else if (n == 1 || numThreads() == 1 ||
-               CostModel::numThreads(n, cost, static_cast<int>(numThreads())) == 1) {
+    if (n <= 1 || numThreads() == 1 ||
+        CostModel::numThreads(n, cost, static_cast<int>(numThreads())) == 1) {
       f(0, n);
       return;
     }

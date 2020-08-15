@@ -27,9 +27,11 @@ namespace tflite {
 namespace gpu {
 namespace metal {
 
+// Add with broadcast.
 std::vector<ComputeTaskDescriptorPtr> Add(int id,
                                           const std::vector<ValueId> input_ids,
                                           ValueId output_id,
+                                          const AddAttributes& attr,
                                           const RuntimeOptions& options);
 
 }  // namespace metal
